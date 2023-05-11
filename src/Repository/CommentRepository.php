@@ -45,6 +45,7 @@ class CommentRepository extends ServiceEntityRepository
    public function findByArticle($article): array
    {
        return $this->createQueryBuilder('c')
+            ->select('c.comment')
            ->andWhere('c.article = :id')
            ->setParameter('id', $article)
            ->orderBy('c.publication_date', 'DESC')

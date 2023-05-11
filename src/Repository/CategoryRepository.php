@@ -70,6 +70,17 @@ class CategoryRepository extends ServiceEntityRepository
         ;
     }
 
+    public function findById($id): ?Category
+    {
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.id = :val')
+            ->setParameter('val', $id)
+            ->getQuery()
+            ->getOneOrNullResult()
+        ;
+    }
+
+
 //    /**
 //     * @return Category[] Returns an array of Category objects
 //     */
