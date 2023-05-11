@@ -37,23 +37,19 @@ class ArticleController extends AbstractController
         #[Route('/article', name:'article_add', methods:['POST'])]
         public function add(Request $r, EntityManagerInterface $em, ValidatorInterface $v) : Response
         {
-            // On récupère les infos envoyées en header
+            
             $headers = $r->headers->all();
-            // Si la clé 'token' existe et qu'elle n'est pas vide dans le header
+            
             if(isset($headers['token']) && !empty($headers['token'])){
-                $jwt = current($headers['token']); // Récupère la cellule 0 avec current()
+                $jwt = current($headers['token']);
                 $key = $this->getParameter('jwt_secret');
-    
-                // On essaie de décoder le jwt
                 try{
                     $decoded = JWT::decode($jwt, new Key($key, 'HS256'));
                 }
-                // Si la signature n'est pas vérifiée ou que la date d'expiration est passée, il entrera dans le catch
                 catch(\Exception $e){
                     return new JsonResponse($e->getMessage(), 403);
                 }
     
-                // On regarde si la clé 'roles' existe et si l'utilisateur possède le bon rôle
                 if($decoded->roles != null  && in_array('ROLE_ADMIN', $decoded->roles)){
                     $author = $em->getRepository(User::class)->findById($r->get('author'));
                     $category = $em->getRepository(Category::class)->findById($r->get('category'));
@@ -65,15 +61,14 @@ class ArticleController extends AbstractController
                     $article->setStatus($r->get('status'));
                     $article->setCreatedAt(new \DateTimeImmutable());
                     
-                    $errors = $v->validate($article); // Vérifie que l'objet soit conforme avec les validations (assert)
+                    $errors = $v->validate($article); 
                     if(count($errors) > 0){
-                        // S'il y a au moins une erreur
                         $e_list = [];
-                        foreach($errors as $e){ // On parcours toutes les erreurs
-                            $e_list[] = $e->getMessage(); // On ajoute leur message dans le tableau de messages
+                        foreach($errors as $e){ 
+                            $e_list[] = $e->getMessage(); 
                         }
     
-                        return new JsonResponse($e_list, 400); // On retourne le tableau de messages
+                        return new JsonResponse($e_list, 400); 
                     }
     
                     $em->persist($article);
@@ -86,40 +81,34 @@ class ArticleController extends AbstractController
     
             return new JsonResponse('Access denied', 403);
         }
-    
+
         // Permet de modifier une catégorie
         #[Route('/article/{id}', name:'article_update', methods:['PATCH'])]
         public function update(Article $article = null, Request $r, ValidatorInterface $v, EntityManagerInterface $em) : Response
         {
     
-            // On récupère les infos envoyées en header
+           
             $headers = $r->headers->all();
-            // Si la clé 'token' existe et qu'elle n'est pas vide dans le header
             if(isset($headers['token']) && !empty($headers['token'])){
-                $jwt = current($headers['token']); // Récupère la cellule 0 avec current()
+                $jwt = current($headers['token']); 
                 $key = $this->getParameter('jwt_secret');
     
-                // On essaie de décoder le jwt
                 try{
                     $decoded = JWT::decode($jwt, new Key($key, 'HS256'));
                 }
-                // Si la signature n'est pas vérifiée ou que la date d'expiration est passée, il entrera dans le catch
                 catch(\Exception $e){
                     return new JsonResponse($e->getMessage(), 403);
                 }
     
-                // On regarde si la clé 'roles' existe et si l'utilisateur possède le bon rôle
                 if($decoded->roles != null  && in_array('ROLE_ADMIN', $decoded->roles)){
     
             if($article === null){
-                return new JsonResponse('Catégorie introuvable', 404); // Retourne un status 404 car le 204 ne retourne pas de message
+                return new JsonResponse('Catégorie introuvable', 404); 
             }
     
             $params = 0;
-            // On regarde si l'attribut name reçu n'est pas null
             if($r->get('title') != null || $r->get('content') != null  ){
                 $params++;
-                // On attribue à la category le nouveau name
                 $article->setTitle($r->get('title'));
                 $article->setContent($r->get('content'));
                 $article->setCategory($r->get('category'));
@@ -127,18 +116,16 @@ class ArticleController extends AbstractController
             }
     
             if($params > 0){
-                $errors = $v->validate($article); // Vérifie que l'objet soit conforme avec les validations (assert)
+                $errors = $v->validate($article); 
                 if(count($errors) > 0){
-                    // S'il y a au moins une erreur
                     $e_list = [];
-                    foreach($errors as $e){ // On parcours toutes les erreurs
-                        $e_list[] = $e->getMessage(); // On ajoute leur message dans le tableau de messages
+                    foreach($errors as $e){ 
+                        $e_list[] = $e->getMessage(); 
                     }
     
-                    return new JsonResponse($e_list, 400); // On retourne le tableau de messages
+                    return new JsonResponse($e_list, 400);
                 }
     
-                // Si tout va bien, on sauvegarde
                 $em->persist($article);
                 $em->flush();
             }else{
@@ -157,23 +144,19 @@ class ArticleController extends AbstractController
         public function delete(Article $article = null, Request $r, EntityManagerInterface $em): Response
         {
     
-                    // On récupère les infos envoyées en header
                     $headers = $r->headers->all();
-                    // Si la clé 'token' existe et qu'elle n'est pas vide dans le header
+
                     if(isset($headers['token']) && !empty($headers['token'])){
-                        $jwt = current($headers['token']); // Récupère la cellule 0 avec current()
+                        $jwt = current($headers['token']); 
                         $key = $this->getParameter('jwt_secret');
             
-                        // On essaie de décoder le jwt
                         try{
                             $decoded = JWT::decode($jwt, new Key($key, 'HS256'));
                         }
-                        // Si la signature n'est pas vérifiée ou que la date d'expiration est passée, il entrera dans le catch
                         catch(\Exception $e){
                             return new JsonResponse($e->getMessage(), 403);
                         }
             
-                        // On regarde si la clé 'roles' existe et si l'utilisateur possède le bon rôle
                         if($decoded->roles != null  && in_array('ROLE_ADMIN', $decoded->roles)){
             if($article == null){
                 return new JsonResponse('Article introuvable', 404);
